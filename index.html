@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Art Mixer</title>
+    <meta name="description" content="Create 60-second video art compositions by layering YouTube videos with real-time volume and opacity control">
+    <!-- Favicon to prevent 404 error -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24'>🎬</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Fullscreen Toggle Button -->
+    <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+    </button>
+    
+    <div class="app-container">
+        <!-- Main Preview Area -->
+        <div class="main-preview" id="main-preview">
+            <div class="preview-content" id="preview-content">
+                Add videos to start creating
+            </div>
+        </div>
+
+        <!-- Video Modules Grid -->
+        <div class="video-modules" id="video-modules">
+            <div class="video-module empty" onclick="openModal(0)" data-slot="0">
+                <div class="add-icon">+</div>
+            </div>
+            <div class="video-module empty" onclick="openModal(1)" data-slot="1">
+                <div class="add-icon">+</div>
+            </div>
+            <div class="video-module empty" onclick="openModal(2)" data-slot="2">
+                <div class="add-icon">+</div>
+            </div>
+            <div class="video-module empty" onclick="openModal(3)" data-slot="3">
+                <div class="add-icon">+</div>
+            </div>
+            <div class="video-module empty" onclick="openModal(4)" data-slot="4">
+                <div class="add-icon">+</div>
+            </div>
+            <div class="video-module empty" onclick="openModal(5)" data-slot="5">
+                <div class="add-icon">+</div>
+            </div>
+        </div>
+
+        <!-- Recording Controls -->
+        <div class="recording-controls">
+            <button class="record-btn" id="record-btn" onclick="toggleRecording()">● Start Recording</button>
+            <button class="save-btn" id="save-btn" onclick="saveComposition()" disabled>💾 Save Art Piece</button>
+        </div>
+    </div>
+
+    <!-- URL Input Modal -->
+    <div class="url-input-modal" id="url-modal">
+        <div class="modal-content">
+            <div class="modal-title">Add YouTube Video</div>
+            <input type="text" class="url-input" id="url-input" placeholder="Paste YouTube URL here...">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn add" onclick="addVideo()">Add Video</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,44 @@
+{
+  "name": "youtube-art-mixer",
+  "version": "1.0.0",
+  "description": "Create 60-second video art compositions by layering YouTube videos with real-time volume and opacity control",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000",
+    "serve": "python -m http.server 8000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "video",
+    "art",
+    "youtube",
+    "composition",
+    "mixer",
+    "creative",
+    "layering",
+    "performance",
+    "web-app"
+  ],
+  "author": "YouTube Art Mixer Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/youtube-art-mixer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/youtube-art-mixer/issues"
+  },
+  "homepage": "https://github.com/yourusername/youtube-art-mixer#readme",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+} 
