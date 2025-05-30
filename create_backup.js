@@ -1240,9 +1240,8 @@ function startCountdown() {
     // Hide empty module slots during countdown so videos move to final positions
     hideEmptyModuleSlots();
     
-    // Create timer overlay with black background overlay
+    // Create timer overlay
     createTimerOverlay();
-    createCountdownBlackOverlay();
     updateTimerDisplay(`${countdown}`, true); // true = countdown mode
     
     countdownInterval = setInterval(() => {
@@ -1251,10 +1250,6 @@ function startCountdown() {
             updateTimerDisplay(`${countdown}`, true);
         } else if (countdown === 0) {
             updateTimerDisplay('GO!', true);
-            // Start fading out black overlay during "GO!" to compensate for slower transition
-            setTimeout(() => {
-                fadeOutBlackOverlay();
-            }, 300); // Start fade 300ms into "GO!" phase
         } else {
             // Countdown finished, start actual recording
             clearInterval(countdownInterval);
@@ -1473,38 +1468,6 @@ function createTimerOverlay() {
     previewContent.appendChild(overlay);
 }
 
-function createCountdownBlackOverlay() {
-    // Remove existing black overlay if present
-    removeCountdownBlackOverlay();
-    
-    const previewContent = document.getElementById('preview-content');
-    const blackOverlay = document.createElement('div');
-    blackOverlay.id = 'countdown-black-overlay';
-    blackOverlay.className = 'countdown-black-overlay';
-    
-    previewContent.appendChild(blackOverlay);
-}
-
-function fadeOutBlackOverlay() {
-    const blackOverlay = document.getElementById('countdown-black-overlay');
-    if (blackOverlay) {
-        // Add fade-out class to trigger CSS transition
-        blackOverlay.classList.add('fade-out');
-        
-        // Remove the overlay after transition completes (0.8s)
-        setTimeout(() => {
-            removeCountdownBlackOverlay();
-        }, 800);
-    }
-}
-
-function removeCountdownBlackOverlay() {
-    const blackOverlay = document.getElementById('countdown-black-overlay');
-    if (blackOverlay) {
-        blackOverlay.remove();
-    }
-}
-
 function updateTimerDisplay(text, isCountdown) {
     const overlay = document.getElementById('timer-overlay');
     if (overlay) {
@@ -1518,8 +1481,6 @@ function removeTimerOverlay() {
     if (overlay) {
         overlay.remove();
     }
-    // Also remove black overlay when timer is removed
-    removeCountdownBlackOverlay();
 }
 
 // =================== PLAYBACK MODE SYSTEM ===================
@@ -1750,7 +1711,7 @@ function jumpToKeyframe(slot, keyframeIndex) {
     }
     
     try {
-        if (previewPlayers[slot]) {
+        if (previewPlayers[slot] && !syncLocks[slot]) {
             syncLocks[slot] = true;
             previewPlayers[slot].seekTo(targetTime);
             
@@ -3560,26 +3521,18 @@ function applyTimestampInput(slot) {
         
         // Always seek if we have a valid time, regardless of current position
         if (clampedTime >= 0) {
-            // FIXED: Seek both players without sync lock check - timestamp input should always work
-            if (previewPlayers[slot]) {
-                console.log(`🎮 FORCING SEEK to ${clampedTime}s (FIXED VERSION)`);
-                
-                // Set sync lock AFTER starting seek to prevent conflicts
+            // Seek both players to the new time
+            if (previewPlayers[slot] && !syncLocks[slot]) {
                 syncLocks[slot] = true;
-                
-                try {
-                    previewPlayers[slot].seekTo(clampedTime, true); // true = allowSeekAhead
-                } catch (error) {
-                    console.log('Could not seek preview player:', error);
-                }
+                previewPlayers[slot].seekTo(clampedTime);
                 
                 // Sync main player
                 setTimeout(() => {
                     if (mainPlayers[slot]) {
                         try {
-                            mainPlayers[slot].seekTo(clampedTime, true);
+                            mainPlayers[slot].seekTo(clampedTime);
                         } catch (error) {
-                            console.log('Could not seek main player:', error);
+                            console.log('Could not seek main player');
                         }
                     }
                     // Release lock
@@ -3587,24 +3540,6 @@ function applyTimestampInput(slot) {
                         syncLocks[slot] = false;
                     }, 100);
                 }, 50);
-                
-                // Verify the seek worked after a delay
-                setTimeout(() => {
-                    try {
-                        const actualTime = previewPlayers[slot].getCurrentTime();
-                        console.log(`⏰ Verification: Requested ${clampedTime}s, actual ${actualTime}s`);
-                        if (Math.abs(actualTime - clampedTime) > 2) {
-                            console.log(`⚠️ SEEK MISMATCH - trying one more time`);
-                            previewPlayers[slot].seekTo(clampedTime);
-                        } else {
-                            console.log(`✅ SEEK SUCCESS!`);
-                        }
-                    } catch (e) {
-                        console.log('Could not verify seek');
-                    }
-                }, 300);
-            } else {
-                console.log(`❌ CANNOT SEEK: No preview player for slot ${slot}`);
             }
             
             // Update video data
@@ -3847,7 +3782,6 @@ function initializeTheme() {
     // Apply saved theme on page load
     document.body.setAttribute('data-theme', currentTheme);
     updateThemeIcon();
-    updateThemeText();
 }
 
 function toggleTheme() {
@@ -3855,7 +3789,6 @@ function toggleTheme() {
     document.body.setAttribute('data-theme', currentTheme);
     localStorage.setItem('splice-theme', currentTheme);
     updateThemeIcon();
-    updateThemeText();
     console.log('Theme switched to:', currentTheme);
 }
 
@@ -3865,17 +3798,10 @@ function updateThemeIcon() {
     
     if (currentTheme === 'light') {
         // Moon icon for switching to dark mode
-        themeIcon.innerHTML = `<path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.06 7 9.54 0 4.48-2.94 8.27-7 9.54.95.3 1.95.46 3 .46 5.52 0 10-4.48 10-10S14.52 2 9 2z"/>`;
+        themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
     } else {
         // Sun icon for switching to light mode
         themeIcon.innerHTML = `<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>`;
-    }
-}
-
-function updateThemeText() {
-    const themeText = document.getElementById('theme-text');
-    if (themeText) {
-        themeText.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
     }
 }
 

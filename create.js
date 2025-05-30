@@ -93,23 +93,38 @@ function closeModal() {
     document.getElementById('url-modal').style.display = 'none';
 }
 
+// =================== ERROR MODAL FUNCTIONS ===================
+function showErrorModal(message) {
+    console.log('Showing error modal:', message);
+    const modal = document.getElementById('error-modal');
+    const messageElement = document.getElementById('error-modal-message');
+    
+    messageElement.textContent = message;
+    modal.style.display = 'flex';
+}
+
+function closeErrorModal() {
+    console.log('Closing error modal');
+    document.getElementById('error-modal').style.display = 'none';
+}
+
 function addVideo() {
     const url = document.getElementById('url-input').value.trim();
     console.log('Adding video:', url);
     
     if (!url) {
-        alert('Please enter a URL');
+        showErrorModal('Please enter a URL');
         return;
     }
 
     const videoId = extractVideoId(url);
     if (!videoId) {
-        alert('Please enter a valid YouTube URL');
+        showErrorModal('Please enter a valid YouTube URL');
         return;
     }
 
     if (usedUrls.has(url)) {
-        alert('This video is already added. Please use a unique video.');
+        showErrorModal('This video is already added. Please use a unique video.');
         return;
     }
 
@@ -673,8 +688,8 @@ function updateVolumeImmediate(slot, value, skipOpacityLink = false) {
     if (!videos[slot] || isReceivingLink) return;
     
     const oldValue = videos[slot].volume;
-    videos[slot].volume = parseInt(value);
-    
+        videos[slot].volume = parseInt(value);
+        
     // Update display
     const volumeDisplay = document.getElementById(`volume-display-${slot}`);
     if (volumeDisplay) {
@@ -713,13 +728,13 @@ function updateVolumeDebounced(slot, value) {
         // Recording now happens immediately in updateVolume() for smooth transitions
         
         // Ensure main players stay muted (visual only)
-        try {
+            try {
             if (mainPlayers[slot]) {
                 mainPlayers[slot].mute();
                 mainPlayers[slot].setVolume(0);
             }
-        } catch (error) {
-            console.log('Could not mute main player');
+            } catch (error) {
+                console.log('Could not mute main player');
         }
         
         // Note: updateLinkedControls moved to updateVolumeImmediate for real-time linking
@@ -754,8 +769,8 @@ function updateOpacityImmediate(slot, value, skipVolumeLink = false) {
     if (!videos[slot] || isReceivingLink) return;
     
     const oldValue = videos[slot].opacity;
-    videos[slot].opacity = parseInt(value);
-    
+        videos[slot].opacity = parseInt(value);
+        
     // Update display
     const opacityDisplay = document.getElementById(`opacity-display-${slot}`);
     if (opacityDisplay) {
@@ -818,7 +833,7 @@ function updateLinkedControls(sourceSlot, type, oldValue, newValue) {
                 
                 // Use the throttled volume update to prevent crackling
                 updateAllPlayersVolume(slot, newLinkedValue);
-                
+                    
                 // If we're in overdubbing mode, hijack this control
                 if (isPlaybackMode) {
                     hijackControl(slot, 'volume');
@@ -911,41 +926,41 @@ function toggleLock(slot) {
     if (videoObj.locked) {
         // Lock all controls
         lockButton.classList.add('active');
-        module.classList.add('locked');
-        
+            module.classList.add('locked');
+            
         // Disable sliders and controls
-        const volSlider = document.getElementById(`vol-${slot}`);
-        const opcSlider = document.getElementById(`opc-${slot}`);
-        const linkButton = document.getElementById(`link-${slot}`);
-        const playPauseBtn = document.getElementById(`play-pause-${slot}`);
-        const scrubber = document.getElementById(`scrubber-${slot}`);
-        
-        if (volSlider) volSlider.disabled = true;
-        if (opcSlider) opcSlider.disabled = true;
-        if (linkButton) linkButton.disabled = true;
-        if (playPauseBtn) playPauseBtn.disabled = true;
-        if (scrubber) scrubber.style.pointerEvents = 'none';
-        
+            const volSlider = document.getElementById(`vol-${slot}`);
+            const opcSlider = document.getElementById(`opc-${slot}`);
+            const linkButton = document.getElementById(`link-${slot}`);
+            const playPauseBtn = document.getElementById(`play-pause-${slot}`);
+            const scrubber = document.getElementById(`scrubber-${slot}`);
+            
+            if (volSlider) volSlider.disabled = true;
+            if (opcSlider) opcSlider.disabled = true;
+            if (linkButton) linkButton.disabled = true;
+            if (playPauseBtn) playPauseBtn.disabled = true;
+            if (scrubber) scrubber.style.pointerEvents = 'none';
+            
         // Update keyframe buttons to locked state
         updateKeyframeButtonsLockState(slot, true);
         
-    } else {
+        } else {
         // Unlock all controls
         lockButton.classList.remove('active');
-        module.classList.remove('locked');
-        
+            module.classList.remove('locked');
+            
         // Enable sliders and controls
-        const volSlider = document.getElementById(`vol-${slot}`);
-        const opcSlider = document.getElementById(`opc-${slot}`);
-        const linkButton = document.getElementById(`link-${slot}`);
-        const playPauseBtn = document.getElementById(`play-pause-${slot}`);
-        const scrubber = document.getElementById(`scrubber-${slot}`);
-        
-        if (volSlider) volSlider.disabled = false;
-        if (opcSlider) opcSlider.disabled = false;
-        if (linkButton) linkButton.disabled = false;
-        if (playPauseBtn) playPauseBtn.disabled = false;
-        if (scrubber) scrubber.style.pointerEvents = 'auto';
+            const volSlider = document.getElementById(`vol-${slot}`);
+            const opcSlider = document.getElementById(`opc-${slot}`);
+            const linkButton = document.getElementById(`link-${slot}`);
+            const playPauseBtn = document.getElementById(`play-pause-${slot}`);
+            const scrubber = document.getElementById(`scrubber-${slot}`);
+            
+            if (volSlider) volSlider.disabled = false;
+            if (opcSlider) opcSlider.disabled = false;
+            if (linkButton) linkButton.disabled = false;
+            if (playPauseBtn) playPauseBtn.disabled = false;
+            if (scrubber) scrubber.style.pointerEvents = 'auto';
         
         // Update keyframe buttons to unlocked state
         updateKeyframeButtonsLockState(slot, false);
@@ -1182,7 +1197,7 @@ function pauseAllVideos() {
 function startRecordingSession() {
     const hasVideos = videos.some(v => v !== null);
     if (!hasVideos) {
-        alert('Add at least one video before recording!');
+        showErrorModal('Add at least one video to start splicing!');
         return;
     }
 
@@ -1200,7 +1215,7 @@ function startRecordingSession() {
     
     if (videosWithoutKeyframes.length > 0) {
         const videoList = videosWithoutKeyframes.join(', ');
-        alert(`Please set at least one timestamp button in video slot${videosWithoutKeyframes.length > 1 ? 's' : ''}: ${videoList}`);
+        showErrorModal(`Please set at least one timestamp button in video slot${videosWithoutKeyframes.length > 1 ? 's' : ''}: ${videoList}`);
         return;
     }
 
@@ -2164,6 +2179,18 @@ function handleKeyframeClick(slot, keyframeIndex) {
 }
 
 // =================== FULLSCREEN FUNCTIONS ===================
+function enterFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+            updateFullscreenIcon(true);
+            document.body.classList.add('fullscreen-active');
+            console.log('Entered fullscreen mode');
+        }).catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+        });
+    }
+}
+
 function setupEventListeners() {
     // Any additional event listeners can be added here
     // Currently handled by existing onload and other functions
@@ -2187,42 +2214,47 @@ function autoEnterFullscreen() {
 }
 
 function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().then(() => {
-            updateFullscreenIcon(true);
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => {
+                updateFullscreenIcon(true);
             document.body.classList.add('fullscreen-active'); // Add class for CSS styling
-            console.log('Entered fullscreen mode');
-        }).catch(err => {
+                console.log('Entered fullscreen mode');
+            }).catch(err => {
             console.error('Error attempting to enable fullscreen:', err);
-        });
-    } else {
-        document.exitFullscreen().then(() => {
-            updateFullscreenIcon(false);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                updateFullscreenIcon(false);
             document.body.classList.remove('fullscreen-active'); // Remove class for CSS styling
-            console.log('Exited fullscreen mode');
-        }).catch(err => {
+                console.log('Exited fullscreen mode');
+            }).catch(err => {
             console.error('Error attempting to exit fullscreen:', err);
-        });
+            });
     }
 }
 
 function updateFullscreenIcon(isFullscreen) {
     const btn = document.getElementById('fullscreen-btn');
     if (btn) {
+        const textSpan = btn.querySelector('span');
+        const textContent = textSpan ? textSpan.textContent : 'Full Screen';
+        
         if (isFullscreen) {
-            // Show "exit fullscreen" icon
+            // Show "exit fullscreen" icon and update text
             btn.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
                 </svg>
+                <span>Exit Full</span>
             `;
             btn.title = "Exit Fullscreen";
         } else {
-            // Show "enter fullscreen" icon
+            // Show "enter fullscreen" icon and restore original text
             btn.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
                 </svg>
+                <span>Full Screen</span>
             `;
             btn.title = "Toggle Fullscreen";
         }
@@ -2443,7 +2475,7 @@ function showNamingModal() {
     setTimeout(() => {
         const input = document.getElementById('art-piece-name');
         input.focus();
-        input.value = `Art Piece ${new Date().toLocaleDateString()}`;
+        input.value = `Cut (${new Date().toLocaleDateString()})`;
         input.select();
     }, 100);
     
@@ -2466,7 +2498,7 @@ function closeNamingModal() {
 
 function proceedToThumbnailCapture() {
     const nameInput = document.getElementById('art-piece-name');
-    const artPieceName = nameInput.value.trim() || `Art Piece ${Date.now()}`;
+    const artPieceName = nameInput.value.trim() || `Cut (${new Date().toLocaleDateString()})`;
     
     closeNamingModal();
     
@@ -2596,13 +2628,8 @@ function saveCompositionWithThumbnailSilent(name, thumbnailUrl) {
         localStorage.setItem('youtubeMixerArtPieces', JSON.stringify(savedArtPieces));
         console.log('Art piece saved successfully:', name);
         
-        // Show success message and redirect to gallery
-        alert(`🎨 "${name}" saved successfully! Redirecting to gallery...`);
-        
-        // Small delay for user to see the success message
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
+        // Redirect to gallery immediately without confirmation message
+        window.location.href = 'index.html';
         
     } catch (error) {
         console.error('Error saving art piece:', error);
@@ -2815,11 +2842,11 @@ function playbackRecordedActions(session, currentTime) {
                 
                 if (latestVolume && videos[slotNum].volume !== latestVolume.value) {
                     videos[slotNum].volume = latestVolume.value;
-                    const volumeSlider = document.getElementById(`vol-${slotNum}`);
-                    if (volumeSlider) {
+                const volumeSlider = document.getElementById(`vol-${slotNum}`);
+                if (volumeSlider) {
                         volumeSlider.value = latestVolume.value;
-                    }
-                    if (previewPlayers[slotNum]) {
+                }
+                if (previewPlayers[slotNum]) {
                         previewPlayers[slotNum].setVolume(latestVolume.value);
                     }
                 }
@@ -2837,12 +2864,12 @@ function playbackRecordedActions(session, currentTime) {
                 
                 if (latestOpacity && videos[slotNum].opacity !== latestOpacity.value) {
                     videos[slotNum].opacity = latestOpacity.value;
-                    const opacitySlider = document.getElementById(`opc-${slotNum}`);
-                    if (opacitySlider) {
+                const opacitySlider = document.getElementById(`opc-${slotNum}`);
+                if (opacitySlider) {
                         opacitySlider.value = latestOpacity.value;
-                    }
-                    const mainLayer = document.getElementById(`main-layer-${slotNum}`);
-                    if (mainLayer) {
+                }
+                const mainLayer = document.getElementById(`main-layer-${slotNum}`);
+                if (mainLayer) {
                         mainLayer.style.opacity = latestOpacity.value / 100;
                     }
                 }
@@ -2850,23 +2877,23 @@ function playbackRecordedActions(session, currentTime) {
             
             // Apply timestamp button activity - only for exact matches (visual feedback)
             if (slotData.timestamps && slotData.timestamps.length > 0) {
-                const timestampPoint = slotData.timestamps.find(point => 
-                    Math.abs(point.timestamp - currentTime) < 100
-                );
-                if (timestampPoint) {
-                    // Light up the keyframe button that was clicked
-                    const keyframeBtn = document.getElementById(`keyframe-${slotNum}-${timestampPoint.keyframeIndex}`);
-                    if (keyframeBtn) {
-                        keyframeBtn.classList.add('playback-active');
-                        // Remove active class after brief highlight
-                        setTimeout(() => {
-                            if (keyframeBtn) keyframeBtn.classList.remove('playback-active');
-                        }, 400);
-                    }
-                    
-                    // If it was a jump action, actually perform the jump
-                    if (timestampPoint.action === 'jump' && timestampPoint.time !== null) {
-                        jumpToKeyframe(slotNum, timestampPoint.keyframeIndex);
+            const timestampPoint = slotData.timestamps.find(point => 
+                Math.abs(point.timestamp - currentTime) < 100
+            );
+            if (timestampPoint) {
+                // Light up the keyframe button that was clicked
+                const keyframeBtn = document.getElementById(`keyframe-${slotNum}-${timestampPoint.keyframeIndex}`);
+                if (keyframeBtn) {
+                    keyframeBtn.classList.add('playback-active');
+                    // Remove active class after brief highlight
+                    setTimeout(() => {
+                        if (keyframeBtn) keyframeBtn.classList.remove('playback-active');
+                    }, 400);
+                }
+                
+                // If it was a jump action, actually perform the jump
+                if (timestampPoint.action === 'jump' && timestampPoint.time !== null) {
+                    jumpToKeyframe(slotNum, timestampPoint.keyframeIndex);
                     }
                 }
             }
@@ -2892,13 +2919,13 @@ function applyStateAtTime(session, targetTime) {
                 }
                 
                 if (latestVolume) {
-                    videos[slotNum].volume = latestVolume.value;
-                    const volumeSlider = document.getElementById(`vol-${slotNum}`);
-                    if (volumeSlider) volumeSlider.value = latestVolume.value;
-                    if (previewPlayers[slotNum]) {
-                        // Use smooth application for scrubbing too
-                        applyVolumeSmooth(slotNum, latestVolume.value);
-                    }
+                videos[slotNum].volume = latestVolume.value;
+                const volumeSlider = document.getElementById(`vol-${slotNum}`);
+                if (volumeSlider) volumeSlider.value = latestVolume.value;
+                if (previewPlayers[slotNum]) {
+                    // Use smooth application for scrubbing too
+                    applyVolumeSmooth(slotNum, latestVolume.value);
+                }
                 }
             }
             
@@ -2913,22 +2940,22 @@ function applyStateAtTime(session, targetTime) {
                 }
                 
                 if (latestOpacity) {
-                    videos[slotNum].opacity = latestOpacity.value;
-                    const opacitySlider = document.getElementById(`opc-${slotNum}`);
-                    if (opacitySlider) opacitySlider.value = latestOpacity.value;
-                    const mainLayer = document.getElementById(`main-layer-${slotNum}`);
-                    if (mainLayer) {
-                        mainLayer.style.opacity = latestOpacity.value / 100;
-                    }
-                    // Also update modal layer opacity
-                    const modalLayer = document.getElementById(`modal-layer-${slotNum}`);
-                    if (modalLayer) {
-                        modalLayer.style.opacity = latestOpacity.value / 100;
-                    }
-                    // Update playback layer opacity
-                    const playbackLayer = document.getElementById(`playback-layer-${slotNum}`);
-                    if (playbackLayer) {
-                        playbackLayer.style.opacity = latestOpacity.value / 100;
+                videos[slotNum].opacity = latestOpacity.value;
+                const opacitySlider = document.getElementById(`opc-${slotNum}`);
+                if (opacitySlider) opacitySlider.value = latestOpacity.value;
+                const mainLayer = document.getElementById(`main-layer-${slotNum}`);
+                if (mainLayer) {
+                    mainLayer.style.opacity = latestOpacity.value / 100;
+                }
+                // Also update modal layer opacity
+                const modalLayer = document.getElementById(`modal-layer-${slotNum}`);
+                if (modalLayer) {
+                    modalLayer.style.opacity = latestOpacity.value / 100;
+                }
+                // Update playback layer opacity
+                const playbackLayer = document.getElementById(`playback-layer-${slotNum}`);
+                if (playbackLayer) {
+                    playbackLayer.style.opacity = latestOpacity.value / 100;
                     }
                 }
             }
@@ -3899,6 +3926,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize controls and event listeners
     setupEventListeners();
     
+    // Show fullscreen recommendation modal after a brief delay
+    setTimeout(() => {
+        showFullscreenModal();
+    }, 1500);
+    
     // Listen for fullscreen changes (e.g., user presses ESC)
     document.addEventListener('fullscreenchange', () => {
         const isFullscreen = !!document.fullscreenElement;
@@ -3912,3 +3944,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// =================== FULLSCREEN RECOMMENDATION MODAL ===================
+function createFullscreenModal() {
+    // Check if modal already exists
+    if (document.getElementById('fullscreen-recommendation-modal')) return;
+    
+    const modal = document.createElement('div');
+    modal.id = 'fullscreen-recommendation-modal';
+    modal.className = 'fullscreen-modal';
+    
+    modal.innerHTML = `
+        <div class="fullscreen-modal-content">
+            <h2 class="fullscreen-modal-title">Go fullscreen for best experience?</h2>
+            <div class="fullscreen-modal-buttons">
+                <button class="fullscreen-modal-btn accept" onclick="acceptFullscreen()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    <span>Yes</span>
+                </button>
+                <button class="fullscreen-modal-btn decline" onclick="declineFullscreen()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                    <span>No</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Append to main preview area
+    const mainPreview = document.querySelector('.main-preview');
+    if (mainPreview) {
+        mainPreview.appendChild(modal);
+    }
+}
+
+function showFullscreenModal() {
+    // Don't show if already in fullscreen
+    if (document.fullscreenElement) {
+        return;
+    }
+    
+    createFullscreenModal();
+    const modal = document.getElementById('fullscreen-recommendation-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function hideFullscreenModal() {
+    const modal = document.getElementById('fullscreen-recommendation-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Remove modal after animation
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 500);
+    }
+}
+
+function acceptFullscreen() {
+    hideFullscreenModal();
+    
+    // Enter fullscreen and wait for input
+    enterFullscreen();
+}
+
+function declineFullscreen() {
+    hideFullscreenModal();
+    
+    // Just close modal and wait for input
+}
+
