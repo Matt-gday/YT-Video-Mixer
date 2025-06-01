@@ -2620,6 +2620,9 @@ function saveCompositionWithThumbnailSilent(name, thumbnailUrl) {
         thumbnail: thumbnailUrl
     };
     
+    // Generate composition hash for duplicate detection
+    composition.compositionHash = generateCompositionHash(composition);
+    
     // Save to localStorage
     try {
         const saved = localStorage.getItem('youtubeMixerArtPieces');
@@ -3677,7 +3680,7 @@ let starfieldAnimationId = null;
 // Starfield configuration
 const STARFIELD_CONFIG = {
     numStars: 1200,
-    speedFactor: 1.2,
+    speedFactor: 0.2,
     maxDepth: 1000,
     starBaseRadius: 1.5,
     starMinRadius: 0.2
@@ -3929,7 +3932,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show fullscreen recommendation modal after a brief delay
     setTimeout(() => {
         showFullscreenModal();
-    }, 1500);
+    }, 500);
     
     // Listen for fullscreen changes (e.g., user presses ESC)
     document.addEventListener('fullscreenchange', () => {
@@ -4007,16 +4010,109 @@ function hideFullscreenModal() {
     }
 }
 
-function acceptFullscreen() {
-    hideFullscreenModal();
-    
-    // Enter fullscreen and wait for input
-    enterFullscreen();
-}
-
 function declineFullscreen() {
     hideFullscreenModal();
-    
-    // Just close modal and wait for input
+    // Start pulsating the leftmost empty module to guide user
+    highlightFirstEmptyModule();
 }
+
+function highlightFirstEmptyModule() {
+    // Find the leftmost empty video module
+    const emptyModules = document.querySelectorAll('.video-module.empty');
+    if (emptyModules.length > 0) {
+        const firstEmpty = emptyModules[0];
+        
+        // Add pulsating class
+        firstEmpty.classList.add('pulsate-start');
+        
+        // Remove the pulsating effect when user clicks on any empty module or after 10 seconds
+        const removeHighlight = () => {
+            firstEmpty.classList.remove('pulsate-start');
+        };
+        
+        // Remove highlight when any empty module is clicked
+        emptyModules.forEach(module => {
+            module.addEventListener('click', removeHighlight, { once: true });
+        });
+        
+        // Auto-remove after 10 seconds
+        setTimeout(removeHighlight, 10000);
+    }
+}
+
+function acceptFullscreen() {
+    hideFullscreenModal();
+    enterFullscreen();
+    // Start pulsating the leftmost empty module to guide user
+    highlightFirstEmptyModule();
+}
+
+// =================== HASH GENERATION UTILITY ===================
+function generateCompositionHash(artPiece) {
+    // Create a hash based on the composition structure
+    // This includes video URLs, session data, and keyframe positions
+    const hashData = {
+        videos: artPiece.videos.map(v => ({
+            url: v.url,
+            videoId: v.videoId,
+            keyframes: v.keyframes
+        })),
+        sessions: artPiece.sessions.map(session => ({
+            actions: session.actions || [],
+            duration: session.duration
+        }))
+    };
+    
+    // Simple hash function - create a string and hash it
+    const hashString = JSON.stringify(hashData);
+    let hash = 0;
+    for (let i = 0; i < hashString.length; i++) {
+        const char = hashString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return Math.abs(hash).toString(36);
+}
+
+// =================== HELP MODAL FUNCTIONS ===================
+function showHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Prevent body scrolling when modal is open
+        document.body.style.overflow = 'hidden';
+        
+        // Add click outside to close functionality
+        setTimeout(() => {
+            document.addEventListener('click', function closeHelpOnOutsideClick(e) {
+                if (e.target === modal) {
+                    closeHelpModal();
+                    document.removeEventListener('click', closeHelpOnOutsideClick);
+                }
+            });
+        }, 100);
+        
+        // Add escape key to close
+        document.addEventListener('keydown', function closeHelpOnEscape(e) {
+            if (e.key === 'Escape') {
+                closeHelpModal();
+                document.removeEventListener('keydown', closeHelpOnEscape);
+            }
+        });
+    }
+}
+
+function closeHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Restore body scrolling
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Make help functions available globally
+window.showHelpModal = showHelpModal;
+window.closeHelpModal = closeHelpModal;
 

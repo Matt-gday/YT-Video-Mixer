@@ -29,6 +29,14 @@
             <span>Gallery</span>
         </button>
         
+        <!-- Search Input -->
+        <div class="sidebar-search" title="Search cuts by title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="search-icon">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <input type="text" id="search-input" placeholder="Search..." maxlength="50">
+        </div>
+        
         <!-- Import Button -->
         <button class="sidebar-btn" id="import-btn" onclick="importCut()" title="Import Splice File">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -52,6 +60,14 @@
             </svg>
             <span id="theme-text">Dark Mode</span>
         </button>
+        
+        <!-- Help Button -->
+        <button class="sidebar-btn" id="help-btn" onclick="showHelpModal()" title="Help & Guide">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+            </svg>
+            <span>Help</span>
+        </button>
     </div>
     
     <!-- Main Content Area -->
@@ -66,6 +82,20 @@
                     </svg>
                     New Cut
                 </a>
+                <div class="gallery-filter">
+                    <button class="filter-btn active" data-filter="all">
+                        All Cuts
+                        <span class="filter-count" id="count-all">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="my-cuts">
+                        My Cuts
+                        <span class="filter-count" id="count-my-cuts">0</span>
+                    </button>
+                    <button class="filter-btn" data-filter="imported">
+                        Imported
+                        <span class="filter-count" id="count-imported">0</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Gallery Content -->
@@ -74,7 +104,7 @@
                 <div class="empty-gallery" id="empty-gallery">
                     <h2>No Cuts Yet</h2>
                     <p>Create your first video composition to get started!</p>
-                    <a href="create.html" class="empty-create-btn">Start Your First Cut</a>
+                    <a href="create.html" class="empty-create-btn" id="empty-create-btn">Start Your First Cut</a>
                 </div>
 
                 <!-- Gallery Grid (will be populated by JavaScript) -->
@@ -86,6 +116,166 @@
             <!-- Footer -->
             <div class="gallery-footer">
                 <p>&copy; 2024 Splice. Create beautiful video compositions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="help-modal" style="display: none;">
+        <div class="help-modal-content">
+            <div class="help-modal-header">
+                <h2>Splice - User Guide</h2>
+                <button class="help-close-btn" onclick="closeHelpModal()" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="help-modal-body">
+                <div class="help-section">
+                    <h3>🎬 Getting Started</h3>
+                    <div class="help-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Start Creating</h4>
+                            <p>Click the <strong>"New Cut"</strong> button to navigate to the creation page where you can start building your video composition.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Add Your First Video</h4>
+                            <p>Click the <strong>+ icon</strong> to add a YouTube video. Paste any YouTube URL and the video will automatically start playing in the module - you can interact with it immediately.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Set Your Timeline Position</h4>
+                            <p><strong>Drag the timeline</strong> to scrub through your video. Hold and drag up for <strong>fine control</strong> - the thumb will turn yellow for precise positioning. You can also <strong>click time displays</strong> to type exact timestamps like "1:30". This is only available before recording and overdubbing.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Set Up Your Jump Points</h4>
+                            <p>Before recording, set up to <strong>3 time jump points</strong> by clicking the <strong>+ buttons</strong> above the timeline. You must have at least one jump point - this will be where your video begins. During recording, click these keyframes to instantly jump to different parts of your video.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h4>Start Your First Splice</h4>
+                            <p>Click <strong>"Start Splicing"</strong> to begin a 60-second recording session. Use your jump points and controls to create dynamic compositions - your movements will be captured automatically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>🎚️ Understanding Controls</h3>
+                    <div class="help-step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h4>Volume & Opacity Sliders</h4>
+                            <p><strong>Volume:</strong> Controls audio level (0-100%)<br>
+                            <strong>Opacity:</strong> Controls visual transparency (0-100%)<br>
+                            💡 <em>Tip: Click the volume or opacity icon to link them together within a single module for synchronized control!</em></p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">7</div>
+                        <div class="step-content">
+                            <h4>Linking Multiple Modules</h4>
+                            <p>Use the <strong>link button</strong> in each video module to sync volume and opacity controls across multiple videos. When linked, adjusting one module's controls will automatically adjust all linked modules, perfect for synchronized fades and effects.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">8</div>
+                        <div class="step-content">
+                            <h4>Video Layer Stacking</h4>
+                            <p>The main video window shows your final splice composition. The <strong>leftmost video</strong> appears at the bottom of the stack, and the <strong>rightmost video</strong> appears on top. Adjust opacity levels to blend and mix videos together for layered effects.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>🎭 Advanced Techniques</h3>
+                    <div class="help-step">
+                        <div class="step-number">9</div>
+                        <div class="step-content">
+                            <h4>Overdub Mode</h4>
+                            <p>After recording a session, you can <strong>overdub</strong> by recording again. Volume and opacity thumbs appear <span style="color: #ff9500">orange</span> and follow previous settings. Click and edit them to start recording fresh values - thumbs turn <span style="color: #00bcd4">blue</span> showing previous values are being overwritten. Timestamp buttons are <span style="color: #ff9500">orange</span> but clicking them jumps to that time and turns <span style="color: #00bcd4">blue</span>, overwriting old keyframes from that point forward.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">10</div>
+                        <div class="step-content">
+                            <h4>Multiple Videos</h4>
+                            <p>Add up to 6 videos total. Each video can have its own timeline position and settings. Mix and match different content for unique compositions.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">11</div>
+                        <div class="step-content">
+                            <h4>Locking Videos</h4>
+                            <p>Use the <strong>lock button</strong> to prevent accidental changes to a video's settings during recording. Locked videos stay stable while you work on others.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>💾 Saving & Sharing</h3>
+                    <div class="help-step">
+                        <div class="step-number">12</div>
+                        <div class="step-content">
+                            <h4>Save Your Creation</h4>
+                            <p>Click <strong>"Save Cut"</strong> to save your composition. Give it a memorable name, then choose a thumbnail to accompany your cut.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">13</div>
+                        <div class="step-content">
+                            <h4>Gallery & Playback</h4>
+                            <p>View all your saved cuts in the <strong>Gallery</strong>. Click any cut to watch it back. Use filters to organize by "My Cuts" or "Imported" files.</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">14</div>
+                        <div class="step-content">
+                            <h4>Export & Import</h4>
+                            <p>Click <strong>"Share"</strong> on any cut to export a .splice file. Others can drag these files into Splice to import your creations, and you can import theirs too!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>⚡ Pro Tips</h3>
+                    <div class="help-tips">
+                        <div class="tip-item">
+                            <strong>🎯 Precise Control:</strong> Drag your mouse up while scrubbing the timeline for fine-grained control
+                        </div>
+                        <div class="tip-item">
+                            <strong>🔗 Link Controls:</strong> Click volume/opacity icons to link within a module, or use the link button to sync controls across multiple modules
+                        </div>
+                        <div class="tip-item">
+                            <strong>⏰ Timestamp Input:</strong> Click any time display to type exact timestamps like "2:15" or "135" (before recording only)
+                        </div>
+                        <div class="tip-item">
+                            <strong>🎨 Layer Effects:</strong> Use overdub mode and opacity adjustments to create complex layered compositions
+                        </div>
+                        <div class="tip-item">
+                            <strong>🌓 Theme Toggle:</strong> Switch between dark and light themes for comfortable viewing
+                        </div>
+                        <div class="tip-item">
+                            <strong>🔒 Lock Videos:</strong> Prevent accidental changes while working on other video modules
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="help-modal-footer">
+                <button class="help-close-footer-btn" onclick="closeHelpModal()">Got it!</button>
             </div>
         </div>
     </div>

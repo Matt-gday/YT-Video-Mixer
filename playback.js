@@ -122,7 +122,7 @@ function setupPlaybackInterface() {
     // Show fullscreen modal instead of auto-starting playback
     setTimeout(() => {
         showPlaybackFullscreenModal();
-    }, 1500); // Give players time to be ready
+    }, 500); // Give players time to be ready
     
     console.log('Playback interface setup complete - showing fullscreen modal');
 }

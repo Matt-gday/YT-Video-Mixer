@@ -4,17 +4,38 @@
  * Homepage for browsing and selecting saved cuts
  */
 
-// =================== GLOBAL VARIABLES ===================
+// =================== GALLERY STATE ===================
 let savedCuts = [];
+let currentFilter = localStorage.getItem('splice-filter') || 'all';
+let currentSearchTerm = '';
 
 // =================== THEME SYSTEM ===================
 let currentTheme = localStorage.getItem('splice-theme') || 'dark';
 
 // =================== PAGE INITIALIZATION ===================
 document.addEventListener('DOMContentLoaded', function() {
-    initializeTheme();
+    console.log('Gallery loaded');
+    
+    // Load saved cuts from localStorage
     loadSavedCuts();
+    
+    // Initialize theme
+    initializeTheme();
+    
+    // Initialize filters
+    initializeFilters();
+    
+    // Initialize search
+    initializeSearch();
+    
+    // Initial display
     displayCuts();
+    
+    // Set up drag and drop for importing
+    initializeDragAndDrop();
+    
+    // Load saved filter preference
+    currentFilter = localStorage.getItem('splice-filter') || 'all';
     
     // Initialize drag-and-drop functionality
     initializeDragAndDrop();
@@ -60,11 +81,44 @@ function saveCutsToStorage() {
 function displayCuts() {
     const emptyGallery = document.getElementById('empty-gallery');
     const cutsGrid = document.getElementById('cuts-grid');
+    const emptyCreateBtn = document.getElementById('empty-create-btn');
     
-    if (savedCuts.length === 0) {
+    // Update filter counts
+    updateFilterCounts();
+    
+    // Get filtered cuts
+    const filteredCuts = getFilteredCuts();
+    
+    if (filteredCuts.length === 0) {
         // Show empty state
         emptyGallery.style.display = 'block';
         cutsGrid.style.display = 'none';
+        
+        // Update empty message based on filter and search
+        const emptyTitle = emptyGallery.querySelector('h2');
+        const emptyText = emptyGallery.querySelector('p');
+        
+        if (currentSearchTerm) {
+            emptyTitle.textContent = 'No matching cuts found';
+            emptyText.textContent = `No cuts found matching "${currentSearchTerm}". Try a different search term.`;
+            // Hide button when showing search results
+            if (emptyCreateBtn) emptyCreateBtn.style.display = 'none';
+        } else if (currentFilter === 'my-cuts') {
+            emptyTitle.textContent = 'No Original Cuts Yet';
+            emptyText.textContent = 'Create your first video composition to get started!';
+            // Show button for empty original cuts
+            if (emptyCreateBtn) emptyCreateBtn.style.display = 'inline-flex';
+        } else if (currentFilter === 'imported') {
+            emptyTitle.textContent = 'No Imported Cuts';
+            emptyText.textContent = 'Import .splice files from other users to see them here.';
+            // Hide button for imported filter
+            if (emptyCreateBtn) emptyCreateBtn.style.display = 'none';
+        } else {
+            emptyTitle.textContent = 'No Cuts Yet';
+            emptyText.textContent = 'Create your first video composition to get started!';
+            // Show button when truly empty (no filter, no search)
+            if (emptyCreateBtn) emptyCreateBtn.style.display = 'inline-flex';
+        }
     } else {
         // Show gallery grid
         emptyGallery.style.display = 'none';
@@ -74,7 +128,7 @@ function displayCuts() {
         cutsGrid.innerHTML = '';
         
         // Sort cuts by creation date (most recent first)
-        const sortedCuts = [...savedCuts].sort((a, b) => {
+        const sortedCuts = [...filteredCuts].sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
         
@@ -282,6 +336,31 @@ function exportCut(cutId) {
 // =================== DRAG AND DROP FUNCTIONALITY ===================
 function initializeDragAndDrop() {
     const dropZone = document.body; // Make entire page a drop zone
+    let dragCounter = 0; // Track drag enter/leave events to prevent flashing
+    let dragOverlay = null;
+    
+    // Create the drag overlay element
+    function createDragOverlay() {
+        if (dragOverlay) return dragOverlay;
+        
+        dragOverlay = document.createElement('div');
+        dragOverlay.className = 'drag-drop-overlay';
+        dragOverlay.innerHTML = `
+            <div class="drag-drop-message">
+                Drop .splice files here to import
+            </div>
+        `;
+        document.body.appendChild(dragOverlay);
+        return dragOverlay;
+    }
+    
+    // Remove drag overlay
+    function removeDragOverlay() {
+        if (dragOverlay) {
+            dragOverlay.remove();
+            dragOverlay = null;
+        }
+    }
     
     // Prevent default drag behaviors on the entire page
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -294,33 +373,58 @@ function initializeDragAndDrop() {
         e.stopPropagation();
     }
     
-    // Visual feedback for drag operations
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, highlight, false);
+    // Handle drag enter - show overlay
+    dropZone.addEventListener('dragenter', function(e) {
+        dragCounter++;
+        if (dragCounter === 1) {
+            // First dragenter - show overlay
+            const overlay = createDragOverlay();
+            // Use requestAnimationFrame to ensure smooth animation
+            requestAnimationFrame(() => {
+                overlay.classList.add('active');
+            });
+        }
     });
     
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, unhighlight, false);
+    // Handle drag over - maintain overlay
+    dropZone.addEventListener('dragover', function(e) {
+        // Keep overlay visible
+        if (dragOverlay && !dragOverlay.classList.contains('active')) {
+            dragOverlay.classList.add('active');
+        }
     });
     
-    function highlight() {
-        dropZone.classList.add('drag-over');
-    }
-    
-    function unhighlight() {
-        dropZone.classList.remove('drag-over');
-    }
+    // Handle drag leave - hide overlay when truly leaving
+    dropZone.addEventListener('dragleave', function(e) {
+        dragCounter--;
+        if (dragCounter <= 0) {
+            // Actually leaving the page - hide overlay
+            dragCounter = 0; // Reset counter
+            if (dragOverlay) {
+                dragOverlay.classList.remove('active');
+                // Remove overlay after transition
+                setTimeout(() => {
+                    removeDragOverlay();
+                }, 200);
+            }
+        }
+    });
     
     // Handle dropped files
-    dropZone.addEventListener('drop', handleDrop, false);
-    
-    function handleDrop(e) {
-        unhighlight();
+    dropZone.addEventListener('drop', function(e) {
+        dragCounter = 0; // Reset counter
+        if (dragOverlay) {
+            dragOverlay.classList.remove('active');
+            setTimeout(() => {
+                removeDragOverlay();
+            }, 200);
+        }
+        
         const dt = e.dataTransfer;
         const files = dt.files;
         
         handleFiles(files);
-    }
+    });
     
     function handleFiles(files) {
         ([...files]).forEach(handleFile);
@@ -374,17 +478,29 @@ function processImportedData(importData, fileName) {
             throw new Error('Missing required art piece data');
         }
         
+        // Generate hash for duplicate detection
+        const incomingHash = generateCompositionHash(artPiece);
+        
+        // Check for existing cuts with the same hash
+        const existingCut = savedCuts.find(cut => cut.compositionHash === incomingHash);
+        if (existingCut) {
+            // Show duplicate modal and highlight existing cut
+            showDuplicateFoundModal(artPiece.name, existingCut, fileName);
+            return;
+        }
+        
         // Generate new ID to avoid conflicts
         const newId = 'imported_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         artPiece.id = newId;
         
-        // Add import metadata
+        // Add import metadata and hash
         artPiece.importedAt = new Date().toISOString();
         artPiece.originalName = artPiece.name;
+        artPiece.compositionHash = incomingHash;
         
         // Check if already exists (by original name) and add timestamp suffix if needed
-        const existingCut = savedCuts.find(cut => cut.originalName === artPiece.originalName);
-        if (existingCut) {
+        const existingCutByName = savedCuts.find(cut => cut.originalName === artPiece.originalName);
+        if (existingCutByName) {
             const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             artPiece.name = `${artPiece.originalName} ${timestamp}`;
         }
@@ -443,6 +559,82 @@ function showImportError(message) {
     setTimeout(() => {
         notification.remove();
     }, 5000);
+}
+
+// =================== DUPLICATE DETECTION MODAL ===================
+function showDuplicateFoundModal(incomingName, existingCut, fileName) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal';
+    modal.innerHTML = `
+        <div class="custom-modal-content">
+            <div class="custom-modal-title">Cut Already Exists</div>
+            <p class="duplicate-modal-description">
+                "${incomingName}" from ${fileName} is identical to an existing cut in your gallery.
+            </p>
+            <p class="duplicate-modal-existing">
+                Existing cut: "${existingCut.name}"
+            </p>
+            <div class="custom-modal-buttons">
+                <button class="custom-modal-btn cancel" onclick="closeDuplicateModal()">Cancel</button>
+                <button class="custom-modal-btn primary" onclick="showExistingCut('${existingCut.id}')">Show Existing</button>
+            </div>
+        </div>
+    `;
+    
+    modal.id = 'duplicate-modal';
+    document.body.appendChild(modal);
+    
+    // Add click outside to close
+    setTimeout(() => {
+        document.addEventListener('click', function closeDuplicateOnOutsideClick(e) {
+            if (e.target === modal) {
+                closeDuplicateModal();
+                document.removeEventListener('click', closeDuplicateOnOutsideClick);
+            }
+        });
+    }, 100);
+}
+
+function closeDuplicateModal() {
+    const modal = document.getElementById('duplicate-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showExistingCut(cutId) {
+    closeDuplicateModal();
+    
+    // Find the cut card in the DOM
+    const cutCards = document.querySelectorAll('.cut-card');
+    let targetCard = null;
+    
+    cutCards.forEach(card => {
+        // Look for the share button which contains the cut ID
+        const shareBtn = card.querySelector('[onclick*="exportCut"]');
+        if (shareBtn && shareBtn.onclick.toString().includes(`'${cutId}'`)) {
+            targetCard = card;
+        }
+    });
+    
+    if (targetCard) {
+        // Scroll to the card with smooth animation
+        targetCard.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // Add highlight effect
+        targetCard.classList.add('cut-highlighted');
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+            targetCard.classList.remove('cut-highlighted');
+        }, 3000);
+        
+        console.log('Highlighted existing cut:', cutId);
+    }
 }
 
 // =================== FULLSCREEN FUNCTIONS ===================
@@ -611,4 +803,143 @@ function generateCompositionHash(artPiece) {
     }
     
     return Math.abs(hash).toString(36);
+}
+
+// =================== FILTER SYSTEM ===================
+function initializeFilters() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    // Set initial active state
+    filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === currentFilter) {
+            btn.classList.add('active');
+        }
+        
+        // Add click handlers
+        btn.addEventListener('click', () => {
+            setFilter(btn.dataset.filter);
+        });
+    });
+    
+    updateFilterCounts();
+}
+
+function setFilter(filterType) {
+    currentFilter = filterType;
+    
+    // Save filter preference
+    localStorage.setItem('splice-filter', filterType);
+    
+    // Update button states
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === filterType) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update display
+    displayCuts();
+}
+
+function updateFilterCounts() {
+    const allCount = savedCuts.length;
+    const importedCount = savedCuts.filter(cut => 
+        cut.importedAt || cut.originalName || cut.name.includes('(imported)')
+    ).length;
+    const myCutsCount = allCount - importedCount;
+    
+    // Update count badges
+    const countAll = document.getElementById('count-all');
+    const countMyCuts = document.getElementById('count-my-cuts');
+    const countImported = document.getElementById('count-imported');
+    
+    if (countAll) countAll.textContent = allCount;
+    if (countMyCuts) countMyCuts.textContent = myCutsCount;
+    if (countImported) countImported.textContent = importedCount;
+}
+
+function getFilteredCuts() {
+    let filteredCuts;
+    
+    // First apply category filter
+    switch (currentFilter) {
+        case 'my-cuts':
+            filteredCuts = savedCuts.filter(cut => 
+                !cut.importedAt && !cut.originalName && !cut.name.includes('(imported)')
+            );
+            break;
+        case 'imported':
+            filteredCuts = savedCuts.filter(cut => 
+                cut.importedAt || cut.originalName || cut.name.includes('(imported)')
+            );
+            break;
+        case 'all':
+        default:
+            filteredCuts = savedCuts;
+            break;
+    }
+    
+    // Then apply search filter if search term exists
+    if (currentSearchTerm) {
+        filteredCuts = filteredCuts.filter(cut =>
+            cut.name.toLowerCase().includes(currentSearchTerm)
+        );
+    }
+    
+    return filteredCuts;
+}
+
+// =================== HELP MODAL FUNCTIONS ===================
+function showHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Prevent body scrolling when modal is open
+        document.body.style.overflow = 'hidden';
+        
+        // Add click outside to close functionality
+        setTimeout(() => {
+            document.addEventListener('click', function closeHelpOnOutsideClick(e) {
+                if (e.target === modal) {
+                    closeHelpModal();
+                    document.removeEventListener('click', closeHelpOnOutsideClick);
+                }
+            });
+        }, 100);
+        
+        // Add escape key to close
+        document.addEventListener('keydown', function closeHelpOnEscape(e) {
+            if (e.key === 'Escape') {
+                closeHelpModal();
+                document.removeEventListener('keydown', closeHelpOnEscape);
+            }
+        });
+    }
+}
+
+function closeHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Restore body scrolling
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Make help functions available globally
+window.showHelpModal = showHelpModal;
+window.closeHelpModal = closeHelpModal;
+
+// =================== SEARCH SYSTEM ===================
+function initializeSearch() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            currentSearchTerm = e.target.value.toLowerCase().trim();
+            displayCuts();
+        });
+    }
 } 
